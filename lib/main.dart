@@ -32,7 +32,7 @@ class _VoiceHomeState extends State<VoiceHome> {
   double rate = 0.5;
   bool flag=false;
 
-  String _newVoiceText;
+  String _newVoiceText="how can i help you";
 
   TtsState ttsState = TtsState.stopped;
 
@@ -50,13 +50,19 @@ class _VoiceHomeState extends State<VoiceHome> {
   bool _isListening = false;
 
   String resultText = "";
-  Timer t;
+  Timer t,a;
 
   @override
   void initState() {
     super.initState();
     initSpeechRecognizer();
     initTts();
+
+    a=Timer(Duration(seconds: 1), () {
+//      flag=true;
+      _speak();
+      a.cancel();
+    });
   }
 
   initTts() {
@@ -122,7 +128,19 @@ class _VoiceHomeState extends State<VoiceHome> {
     if (_newVoiceText != null) {
       if (_newVoiceText.isNotEmpty) {
         var result = await flutterTts.speak(_newVoiceText);
-        if (result == 1) setState(() => ttsState = TtsState.playing);
+        if (result == 1) setState(()  {ttsState = TtsState.playing;
+        if(_newVoiceText!="how can i help you")
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            // return object of type Dialog
+            return AlertDialog(
+              title: new Text("$_newVoiceText"),
+
+            );
+          },
+        );
+        ;});
       }
     }
   }
@@ -152,15 +170,12 @@ class _VoiceHomeState extends State<VoiceHome> {
     _speechRecognition.setRecognitionStartedHandler(
           () => setState(() => _isListening = true),
     );
-setState(() {
 
-});
     _speechRecognition.setRecognitionResultHandler(
-          (String speech) => setState(() /*(){*/ {
+          (String speech) => setState((){
             resultText=speech.toLowerCase();
           }
-
-          /*}*/),
+          ),
     );
 
     _speechRecognition.setRecognitionCompleteHandler((){
@@ -175,7 +190,6 @@ setState(() {
         _isListening = false;
         if (!_isListening && _newVoiceText.isNotEmpty)
         {
-
           t = Timer(Duration(seconds: 1), () {
             flag=true;
             _speak();
@@ -185,26 +199,6 @@ setState(() {
         }
       });
     }
-     /*     () => setState(()
-    {
-
-
-      if (!_isListening && resultText.isNotEmpty)
-        {
-
-       *//* Future.delayed(const Duration(milliseconds: 2000), () {*//*
-          if(resultText=="what is my balance" || resultText=="my balance")
-          {resultText = _newVoiceText="your balance is 100\$";
-          }
-          else
-            resultText=_newVoiceText="I don't get it";
-
-
-
-      *//*  });*//*
-//      _speak();
-    }
-          }),*/
     );
 
     _speechRecognition.activate().then(
@@ -215,6 +209,16 @@ setState(() {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.mic),
+        onPressed: () {
+          if (_isAvailable && !_isListening)
+            _speechRecognition
+                .listen(locale: "en_US")
+                .then((result) => print('$result'));
+        },
+        backgroundColor: Colors.pink,
+      ),
       body: Container(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -223,7 +227,7 @@ setState(() {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                FloatingActionButton(
+              /*  FloatingActionButton(
                   child: Icon(Icons.cancel),
                   mini: true,
                   backgroundColor: Colors.deepOrange,
@@ -237,16 +241,7 @@ setState(() {
                       );
                   },
                 ),
-                FloatingActionButton(
-                  child: Icon(Icons.mic),
-                  onPressed: () {
-                    if (_isAvailable && !_isListening)
-                      _speechRecognition
-                          .listen(locale: "en_US")
-                          .then((result) => print('$result'));
-                  },
-                  backgroundColor: Colors.pink,
-                ),
+
                 FloatingActionButton(
                   child: Icon(Icons.stop),
                   mini: true,
@@ -258,13 +253,13 @@ setState(() {
                             (result) => setState(() => _isListening = result),
                       );
                   },
-                ),
+                ),*/
               ],
             ),
             Container(
               width: MediaQuery.of(context).size.width * 0.8,
               decoration: BoxDecoration(
-                color: Colors.cyanAccent[100],
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(6.0),
               ),
               padding: EdgeInsets.symmetric(
