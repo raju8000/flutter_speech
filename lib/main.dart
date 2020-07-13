@@ -21,18 +21,19 @@ class VoiceHome extends StatefulWidget {
   @override
   _VoiceHomeState createState() => _VoiceHomeState();
 }
-enum TtsState { playing, stopped, paused, continued }
-class _VoiceHomeState extends State<VoiceHome> {
 
+enum TtsState { playing, stopped, paused, continued }
+
+class _VoiceHomeState extends State<VoiceHome> {
   FlutterTts flutterTts;
   dynamic languages;
   String language;
   double volume = 1.5;
   double pitch = 1.0;
   double rate = 0.5;
-  bool flag=false;
+  bool flag = false;
 
-  String _newVoiceText="how can i help you";
+  String _newVoiceText = "Hello Sharath welcome back";
 
   TtsState ttsState = TtsState.stopped;
 
@@ -44,13 +45,12 @@ class _VoiceHomeState extends State<VoiceHome> {
 
   get isContinued => ttsState == TtsState.continued;
 
-
   SpeechRecognition _speechRecognition;
   bool _isAvailable = false;
   bool _isListening = false;
 
   String resultText = "";
-  Timer t,a;
+  Timer t, a;
 
   @override
   void initState() {
@@ -58,7 +58,7 @@ class _VoiceHomeState extends State<VoiceHome> {
     initSpeechRecognizer();
     initTts();
 
-    a=Timer(Duration(seconds: 1), () {
+    a = Timer(Duration(seconds: 1), () {
 //      flag=true;
       _speak();
       a.cancel();
@@ -128,19 +128,21 @@ class _VoiceHomeState extends State<VoiceHome> {
     if (_newVoiceText != null) {
       if (_newVoiceText.isNotEmpty) {
         var result = await flutterTts.speak(_newVoiceText);
-        if (result == 1) setState(()  {ttsState = TtsState.playing;
-        if(_newVoiceText!="how can i help you")
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            // return object of type Dialog
-            return AlertDialog(
-              title: new Text("$_newVoiceText"),
-
-            );
-          },
-        );
-        ;});
+        if (result == 1)
+          setState(() {
+            ttsState = TtsState.playing;
+            if (_newVoiceText != "how can i help you")
+//              showDialog(
+//                context: context,
+//                builder: (BuildContext context) {
+//                  // return object of type Dialog
+//                  return AlertDialog(
+//                    title: new Text("$_newVoiceText"),
+//                  );
+//                },
+//              );
+            ;
+          });
       }
     }
   }
@@ -154,6 +156,7 @@ class _VoiceHomeState extends State<VoiceHome> {
     var result = await flutterTts.pause();
     if (result == 1) setState(() => ttsState = TtsState.paused);
   }
+
   @override
   void dispose() {
     super.dispose();
@@ -164,46 +167,50 @@ class _VoiceHomeState extends State<VoiceHome> {
     _speechRecognition = SpeechRecognition();
 
     _speechRecognition.setAvailabilityHandler(
-          (bool result) => setState(() => _isAvailable = result),
+      (bool result) => setState(() => _isAvailable = result),
     );
 
     _speechRecognition.setRecognitionStartedHandler(
-          () => setState(() => _isListening = true),
+      () => setState(() => _isListening = true),
     );
 
     _speechRecognition.setRecognitionResultHandler(
-          (String speech) => setState((){
-            resultText=speech.toLowerCase();
-          }
-          ),
+      (String speech) => setState(() {
+        resultText = speech.toLowerCase();
+      }),
     );
 
-    _speechRecognition.setRecognitionCompleteHandler((){
-      if(resultText=="what is my balance" || resultText=="my balance")
-      {resultText = _newVoiceText="your balance is 100\$";
-      }
-      else
-        resultText=_newVoiceText="I don't get it";
+    _speechRecognition.setRecognitionCompleteHandler(() {
+      if (resultText == "check my balance" ||
+          resultText == "my balance" ||
+          resultText == "balance") {
+        resultText = _newVoiceText =
+            "your balance is \$100.16 and the due date is July 25th 2020";
+      } else
+        if (resultText == "Hey you know our flutter group reached 10,000 members" ||
+            resultText == "my balance" ||
+            resultText == "balance") {
+          resultText = _newVoiceText =
+          "Yes indeed! 10110 to be actually";
+        }
 
+        else resultText = _newVoiceText = "I don't get it";
 
       setState(() {
         _isListening = false;
-        if (!_isListening && _newVoiceText.isNotEmpty)
-        {
+        if (!_isListening && _newVoiceText.isNotEmpty) {
           t = Timer(Duration(seconds: 1), () {
-            flag=true;
+            flag = true;
             _speak();
             t.cancel();
           });
-
         }
       });
-    }
-    );
+    });
 
     _speechRecognition.activate().then(
           (result) => setState(() => _isAvailable = result),
-    );
+        );
   }
 
   @override
@@ -216,6 +223,13 @@ class _VoiceHomeState extends State<VoiceHome> {
             _speechRecognition
                 .listen(locale: "en_US")
                 .then((result) => print('$result'));
+
+          _stop();
+
+          if (_isListening)
+            _speechRecognition.stop().then(
+                  (result) => setState(() => _isListening = result),
+                );
         },
         backgroundColor: Colors.pink,
       ),
@@ -227,7 +241,7 @@ class _VoiceHomeState extends State<VoiceHome> {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-              /*  FloatingActionButton(
+                /*  FloatingActionButton(
                   child: Icon(Icons.cancel),
                   mini: true,
                   backgroundColor: Colors.deepOrange,
